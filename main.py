@@ -4,10 +4,54 @@ from models import *
 @api.resource("/")
 class Test(Resource):
 
+	def get(self):
+		# data = request.get_json()
+		# name = data["name"]
+		output = ""
+		output += "<h1> It's working ! </h1>"
+		return output
+
+@api.resource("/add/student")
+class AddStudent(Resource):
+
 	def post(self):
 		data = request.get_json()
-		name = data["name"]
-		return jsonify({"test" : name})
+		stud = Student(name=data["name"], lastname = data["lname"], username=data["uname"], password=data["password"], image=data["image"])
+		session.add(stud)
+		try:
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+		
+
+@api.resource("/add/master")
+class AddMaster(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/login")
+class Login(Resource):
+
+	def get(self):
+		data = request.authorization
+		users = session.query(Student).filter_by(username=data["username"])
+		if not users.one():
+			return status.HTTP_500_INTERNAL_SERVER_ERROR 
+		
+		elif users.one().password == data["password"]:
+			return status.HTTP_200_OK
+		
+		else:
+			return  status.HTTP_401_UNAUTHORIZED
+			# print user
+			# return jsonify(user)
+			# if user.password == data["password"]:
+			# 	return status.HTTP_200_OK
+			# else:
+			# 	return jsonify({"message":"Wrong password"}),status.HTTP_401_UNAUTHORIZED 
+
 
 if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")
