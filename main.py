@@ -37,20 +37,13 @@ class Login(Resource):
 	def get(self):
 		data = request.authorization
 		users = session.query(Student).filter_by(username=data["username"])
-		if not users.one():
-			return status.HTTP_500_INTERNAL_SERVER_ERROR 
-		
-		elif users.one().password == data["password"]:
-			return status.HTTP_200_OK
-		
-		else:
-			return  status.HTTP_401_UNAUTHORIZED
-			# print user
-			# return jsonify(user)
-			# if user.password == data["password"]:
-			# 	return status.HTTP_200_OK
-			# else:
-			# 	return jsonify({"message":"Wrong password"}),status.HTTP_401_UNAUTHORIZED 
+		try:	
+			if users.one().password == data["password"]:
+				return status.HTTP_200_OK
+			else:
+				return jsonify({"error" : "Password Incorrect."}), status.HTTP_401_UNAUTHORIZED
+		except:
+			return  jsonify({"error" : "Invalid Username."}), status.HTTP_401_UNAUTHORIZED
 
 
 if __name__ == '__main__':
