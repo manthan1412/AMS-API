@@ -68,4 +68,4 @@ if __name__ == '__main__':
 	# db.session.add(stud)
 	# db.session.commit()
 	port = int(os.environ.get('PORT', 8080))
-	app.run(port=port, debug=True)
+	app.run(host='0.0.0.0', port=port, debug=True)
