@@ -10,12 +10,13 @@ class Student(Base):
 	password = Column(String(20), nullable=False)
 	image = Column(String, nullable=True)
 
-class Masters(Base):
+class Master(Base):
 
 	__tablename__ = 'master'
 
 	id = Column(Integer, primary_key=True)
 	name = Column(String, nullable=False)
+	lastname = Column(String, nullable=False)
 	username = Column(String, nullable=False)
 	password = Column(String, nullable=False)
 	email = Column(String, nullable=False)
