@@ -67,4 +67,5 @@ if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")
 	# db.session.add(stud)
 	# db.session.commit()
-	app.run(debug=True)
+	port = int(os.environ.get('PORT', 8080))
+	app.run(port=port, debug=True)
