@@ -33,61 +33,37 @@ class Check(Resource):
 
 		return jsonify({"name" : data["name"]})
 
-@api.resource("/add/student")
-class AddStudent(Resource):
+@api.resource("/teachers")
+class Teachers(Resource):
 
 	def post(self):
 		data = request.get_json()
-		if session.query(Student).filter_by(username=data["username"]).first() is not None:
-			return jsonify({"message" : "Username already exists"})
-		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 		try:
-			session.add(stud)
-			session.commit()
-			return status.HTTP_200_OK
+			teachers = session.query(Teacher).filter_by(master_id=data["id"]).all()
+			return jsonify(teacher=[teacher.serialize for teacher in teachers])
 		except:
-			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
-@api.resource("/edit/student")
-class EditStudent(Resource):
-
-	def post(self):
-		pass
-
-@api.resource("/delete/student")
-class DeleteStudent(Resource):
-
-	def post(self):
-		pass
-
-@api.resource("/add/teacher")
-class AddTeacher(Resource):
+@api.resource("/students")
+class Students(Resource):
 
 	def post(self):
 		data = request.get_json()
-		if session.query(Teacher).filter_by(username=data["username"]).first() is not None:
-			return jsonify({"message" : "Username already exists"})
-		teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
 		try:
-			session.add(teacher)
-			session.commit()
-			return status.HTTP_200_OK
+			students = session.query(Student).filter_by(master_id=data["id"]).all()
+			return jsonify(student=[student.serialize for student in students])
 		except:
-			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
-@api.resource("/edit/teacher")
-class EditTeacher(Resource):
+@api.resource("/masters")
+class Masters(Resource):
 
 	def post(self):
-		pass
-
-@api.resource("/delete/teacher")
-class DeleteTeacher(Resource):
-
-	def post(self):
-		pass
+		try:
+			masters = session.query(Master).all()
+			return jsonify(master=[master.serialize for master in masters])
+		except:
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 @api.resource("/add/master")
 class AddMaster(Resource):
@@ -105,19 +81,181 @@ class AddMaster(Resource):
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
+@api.resource("/add/student")
+class AddStudent(Resource):
+
+	def post(self):
+		data = request.get_json()
+		if session.query(Student).filter_by(username=data["username"]).first() is not None:
+			return jsonify({"message" : "Username already exists"})
+		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
+		try:
+			session.add(stud)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/add/teacher")
+class AddTeacher(Resource):
+
+	def post(self):
+		data = request.get_json()
+		if session.query(Teacher).filter_by(username=data["username"]).first() is not None:
+			return jsonify({"message" : "Username already exists"})
+		teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
+		try:
+			session.add(teacher)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
 @api.resource("/edit/master")
 class EditMaster(Resource):
 
 	def post(self):
-		pass
+		data = request.get_json()
+		try:
+			master = session.query(Master).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Master doesn't exist !"})
+
+		try:	
+			if data["name"] is not None:
+				master.name = data["name"]
+			if data["lastname"] is not None:
+				master.lastname = data["lastname"]
+			if data["newpassword"] is not None:
+				if data["oldpassword"] == master.password:
+					master.password = data["newpassword"]
+				else:
+					session.rollback()
+					return jsonify({"message" : "Wrong password"})
+			if data["email"] is not None:
+				master.email = data["email"]
+			session.add(master)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/edit/student")
+class EditStudent(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			stud = session.query(Student).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Student doesn't exist !"})
+
+		try:	
+			if data["name"] is not None:
+				stud.name = data["name"]
+			if data["lastname"] is not None:
+				stud.lastname = data["lastname"]
+			if data["newpassword"] is not None:
+				if data["oldpassword"] == stud.password:
+					stud.password = data["newpassword"]
+				else:
+					session.rollback()
+					return jsonify({"message" : "Wrong password"})
+			session.add(stud)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/edit/teacher")
+class EditTeacher(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			teacher = session.query(Teacher).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Teacher doesn't exist !"})
+
+		try:	
+			if data["name"] is not None:
+				teacher.name = data["name"]
+			if data["lastname"] is not None:
+				teacher.lastname = data["lastname"]
+			if data["newpassword"] is not None:
+				if data["oldpassword"] == teacher.password:
+					teacher.password = data["newpassword"]
+				else:
+					session.rollback()
+					return jsonify({"message" : "Wrong password"})
+			if data["email"] is not None:
+				teacher.email = data["email"]
+			session.add(teacher)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 @api.resource("/delete/master")
 class DeleteMaster(Resource):
 
 	def post(self):
-		pass
+		data = request.get_json()
+		try:
+			master = session.query(Master).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Master doesn't exist !"})
 
-@api.resource("/upload")
+		try:
+			session.delete(master)
+			session.commit()
+			return status.HTTP_200_OK
+		except: 
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/delete/student")
+class DeleteStudent(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			stud = session.query(Student).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Student doesn't exist !"})
+
+		try:
+			session.delete(stud)
+			session.commit()
+			return status.HTTP_200_OK
+		except: 
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/delete/teacher")
+class DeleteTeacher(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			teacher = session.query(Teacher).filter_by(id=data["id"]).one()
+		except:
+			return jsonify({"message" : "Teacher doesn't exist !"})
+
+		try:
+			session.delete(teacher)
+			session.commit()
+			return status.HTTP_200_OK
+		except: 
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/upload/file")
 class Upload(Resource):
 	
 	def post(self):
@@ -132,6 +270,12 @@ class Upload(Resource):
 		except:
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/delete/file")
+class DeleteFile(Resource):
+
+	def post(self):
+		pass
 
 @api.resource("/login")
 class Login(Resource):

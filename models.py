@@ -11,6 +11,17 @@ class Master(Base):
 	password = Column(String, nullable=False)
 	email = Column(String, nullable=False)
 
+	@property
+	def serialize(self):
+	    return {
+	    	'id' : self.id,
+	    	'name' : self.name,
+	    	'lastname' : self.lastname,
+	    	'username' : self.username,
+	    	'email' : self.email
+	    }
+	
+
 class Student(Base):
 	__tablename__ = 'student'
 
@@ -23,6 +34,17 @@ class Student(Base):
 	master_id = Column(Integer, ForeignKey('master.id'))
 	master = relationship(Master)
 
+	@property
+	def serialize(self):
+	    return {
+	    	'id' : self.id,
+	    	'name' : self.name,
+	    	'lastname' : self.lastname,
+	    	'username' : self.username,
+	    	'image' : self.image,
+	    }
+	
+
 class Teacher(Base):
 	__tablename__ = 'teacher'
 
@@ -34,6 +56,17 @@ class Teacher(Base):
 	email = Column(String, nullable=False)
 	master_id = Column(Integer, ForeignKey('master.id'))
 	master = relationship(Master)
+	
+	@property
+	def serialize(self):
+	    return {
+	    	'id' : self.id,
+	    	'name' : self.name,
+	    	'lastname' : self.lastname,
+	    	'username' : self.username,
+	    	'email' : self.email,
+	    }
+	
 
 class Moodle(Base):
 	__tablename__ ='moodle'
@@ -44,6 +77,17 @@ class Moodle(Base):
 	uploaded_by = Column(Integer, ForeignKey('teacher.id'))
 	time = Column(DateTime, default=datetime.datetime.now)
 	teacher = relationship(Teacher)
+
+	@property
+	def serialize(self):
+	    return {
+	    	'id' : self.id,
+	    	'filename' : self.filename,
+	    	'path' : self.path,
+	    	'uploaded_by' : self.uploaded_by,
+	    	'time' : self.time,
+	    }
+	
 
 # class Teacher(db.Model):
 # 	__tablename__ = 'teacher'
