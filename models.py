@@ -23,6 +23,27 @@ class Student(Base):
 	master_id = Column(Integer, ForeignKey('master.id'))
 	master = relationship(Master)
 
+class Teacher(Base):
+	__tablename__ = 'teacher'
+
+	id = Column(Integer, primary_key=True)
+	name = Column(String, nullable=False)
+	lastname = Column(String, nullable=False)
+	username = Column(String, nullable=False)
+	password = Column(String, nullable=False)
+	master_id = Column(Integer, ForeignKey('master.id'))
+	master = relationship(Master)
+
+class Moodle(Base):
+	__tablename__ ='moodle'
+
+	id = Column(Integer, primary_key=True)
+	filename = Column(String, nullable=False)
+	path = Column(String, nullable=False)
+	uploaded_by = Column(Integer, ForeignKey('teacher.id'))
+	time = Column(DateTime, default=datetime.datetime.now)
+	teacher = relationship(Teacher)
+
 # class Teacher(db.Model):
 # 	__tablename__ = 'teacher'
 # 	id = db.Column(db.Integer, primary_key=True)
