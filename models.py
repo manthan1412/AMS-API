@@ -31,6 +31,7 @@ class Teacher(Base):
 	lastname = Column(String, nullable=False)
 	username = Column(String, nullable=False)
 	password = Column(String, nullable=False)
+	email = Column(String, nullable=False)
 	master_id = Column(Integer, ForeignKey('master.id'))
 	master = relationship(Master)
 

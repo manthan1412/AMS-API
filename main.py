@@ -38,6 +38,8 @@ class AddStudent(Resource):
 
 	def post(self):
 		data = request.get_json()
+		if session.query(Student).filter_by(username=data["username"]).first() is not None:
+			return jsonify({"message" : "Username already exists"})
 		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 		try:
 			session.add(stud)
@@ -46,16 +48,85 @@ class AddStudent(Resource):
 		except:
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
-		
+
+@api.resource("/edit/student")
+class EditStudent(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/delete/student")
+class DeleteStudent(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/add/teacher")
+class AddTeacher(Resource):
+
+	def post(self):
+		data = request.get_json()
+		if session.query(Teacher).filter_by(username=data["username"]).first() is not None:
+			return jsonify({"message" : "Username already exists"})
+		teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
+		try:
+			session.add(teacher)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/edit/teacher")
+class EditTeacher(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/delete/teacher")
+class DeleteTeacher(Resource):
+
+	def post(self):
+		pass
 
 @api.resource("/add/master")
 class AddMaster(Resource):
 
 	def post(self):
 		data = request.get_json()
+		if session.query(Master).filter_by(username=data["username"]).first() is not None:
+			return jsonify({"message" : "Username already exists"})
 		master = Master(name=data["name"], username=data["username"], lastname=data["lastname"], password=data["password"], email=data["email"])
 		try:
 			session.add(master)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/edit/master")
+class EditMaster(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/delete/master")
+class DeleteMaster(Resource):
+
+	def post(self):
+		pass
+
+@api.resource("/upload")
+class Upload(Resource):
+	
+	def post(self):
+		data = request.get_json()
+		if session.query(Teacher).filter_by(id=data["teacher_id"]).first() is None:
+			return status.HTTP_401_UNAUTHORIZED
+		file = Moodle(filename=data["filename"], path=data["path"], uploaded_by=data["teacher_id"])
+		try:
+			session.add(file)
 			session.commit()
 			return status.HTTP_200_OK
 		except:
