@@ -1,15 +1,5 @@
 from settings import *
 
-class Student(Base):
-	__tablename__ = 'student'
-
-	id = Column(Integer, primary_key=True)
-	name = Column(String, nullable=False)
-	lastname = Column(String, nullable=False)
-	username = Column(String(80), unique=True)
-	password = Column(String(20), nullable=False)
-	image = Column(String, nullable=True)
-
 class Master(Base):
 
 	__tablename__ = 'master'
@@ -20,6 +10,18 @@ class Master(Base):
 	username = Column(String, nullable=False)
 	password = Column(String, nullable=False)
 	email = Column(String, nullable=False)
+
+class Student(Base):
+	__tablename__ = 'student'
+
+	id = Column(Integer, primary_key=True)
+	name = Column(String, nullable=False)
+	lastname = Column(String, nullable=False)
+	username = Column(String(80), unique=True)
+	password = Column(String(20), nullable=False)
+	image = Column(String, nullable=True)
+	master_id = Column(Integer, ForeignKey('master.id'))
+	master = relationship(Master)
 
 # class Teacher(db.Model):
 # 	__tablename__ = 'teacher'

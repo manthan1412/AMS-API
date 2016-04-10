@@ -1,6 +1,13 @@
 from settings import *
 from models import *
 
+@app.after_request
+def after_request(response):
+	response.headers.add('Access-Control-Allow-Origin', '*')
+	response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+	response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE')
+	return response
+
 @api.resource("/")
 class Test(Resource):
 
@@ -14,22 +21,30 @@ class Test(Resource):
 @api.resource("/test")
 class Check(Resource):
 
+	def get(self):
+		return jsonify({"name" : "ams"})
+
 	def post(self):
+		# resp = make_response("Hello world", 200)
+		# resp.headers.extend({'Access-Control-Allow-Origin' : 'http://127.0.0.1'})
 		data = request.get_json()
-		print data
-		return data["name"]
+		# print data
+		# return data["name"]
+
+		return jsonify({"name" : data["name"]})
 
 @api.resource("/add/student")
 class AddStudent(Resource):
 
 	def post(self):
 		data = request.get_json()
-		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"])
+		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 		try:
 			session.add(stud)
 			session.commit()
 			return status.HTTP_200_OK
 		except:
+			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 		
 
@@ -44,6 +59,7 @@ class AddMaster(Resource):
 			session.commit()
 			return status.HTTP_200_OK
 		except:
+			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 @api.resource("/login")
