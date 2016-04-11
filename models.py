@@ -110,7 +110,7 @@ class Subject(Base):
 	__tablename__ = 'subject'
 
 	id = Column(Integer, primary_key=True)
-	name = Column(String, nullable=False, unique=True) 
+	name = Column(String, nullable=False) 
 	master_id = Column(Integer, ForeignKey('master.id'))
 	master = relationship(Master)
 	@property

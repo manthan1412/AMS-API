@@ -65,6 +65,21 @@ class Masters(Resource):
 		except:
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
+@api.resource("/classes")
+class Classes(Resource):
+
+	pass
+
+@api.resource("/subjects")
+class Subjects(Resource):
+
+	pass
+
+@api.resource("/timetable")
+class Timetable(Resource):
+
+	pass
+
 @api.resource("/add/master")
 class AddMaster(Resource):
 
@@ -112,6 +127,53 @@ class AddTeacher(Resource):
 		except:
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/add/class")
+class AddClass(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			classd = Class(department=data["department"], year=data["year"], div=data["div"], master_id=data["master_id"])
+			session.add(classd)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/add/subject")
+class AddSubject(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			subject = Subject(name=data["name"], master_id=data["master_id"])
+			session.add(subject)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/add/timetable")
+class AddTimetable(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			class_id = session.query(Class).filter(and_(Class.department==data["department"], Class.year==data["year"], Class.div==data["div"], Class.master_id==data["master_id"])).one()
+		except:
+			session.rollback()
+			return jsonify({"message" : "Invalid data"})
+		try:
+			timetable = Timetable(day=data["day"], start_time=data["start"], end_time=data["end"], class_id=class_id, teacher_id=data["teacher_id"], subject_id=data["subject_id"], master_id=data["master_id"])
+			session.add(timetable)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_401_UNAUTHORIZED
 
 @api.resource("/edit/master")
 class EditMaster(Resource):
@@ -201,6 +263,21 @@ class EditTeacher(Resource):
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
+@api.resource("/edit/subject")
+class EditSubject(Resource):
+
+	pass
+
+@api.resource("/edit/class")
+class EditClass(Resource):
+
+	pass
+
+@api.resource("/edit/timetable")
+class EditTimetable(Resource):
+
+	pass
+
 @api.resource("/delete/master")
 class DeleteMaster(Resource):
 
@@ -287,6 +364,21 @@ class DeleteFile(Resource):
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
+@api.resource("/delete/subject")
+class DeleteSubject(Resource):
+
+	pass
+
+@api.resource("/delete/class")
+class DeleteClass(Resource):
+
+	pass
+
+@api.resource("/delete/timetable")
+class DeleteTimetable(Resource):
+
+	pass
+
 @api.resource("/get/file")
 class GetFile(Resource):
 
@@ -300,22 +392,49 @@ class GetFile(Resource):
 			session.rollback()
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
-@api.resource("/login")
-class Login(Resource):
+@api.resource("/login/student")
+class StudentLogin(Resource):
 
 	def post(self):
 		data = request.authorization
-		users = session.query(Student).filter_by(username=data["username"])
+		try:
+			student = session.query(Student).filter_by(username=data["username"]).one()
+		except:
+			return jsonify({"message" : "Invalid username"})
+		
+		if student.password == data["password"]:
+			return status.HTTP_200_OK
+		else:
+			return jsonify({"message" : "Wrong password"})
+
+@api.resource("/login/teacher")
+class TeacherLogin(Resource):
+
+	def post(self):
+		data = request.authorization
+		try:
+			teacher = session.query(Teacher).filter_by(username=data["username"]).one()
+		except:
+			return jsonify({"message" : "Invalid username"})
+		
+		if teacher.password == data["password"]:
+			return status.HTTP_200_OK
+		else:
+			return jsonify({"message" : "Wrong password"})
+
+@api.resource("/login/master")
+class MasterLogin(Resource):
+
+	def post(self):
+		data = request.authorization
+		master = session.query(Master).filter_by(username=data["username"])
 		try:	
-			if users.one().password == data["password"]:
+			if master.one().password == data["password"]:
 				return status.HTTP_200_OK
 			else:
-				return jsonify({"error" : "Password Incorrect.",
-								"status" : status.HTTP_401_UNAUTHORIZED}) 
+				return jsonify({"error" : "Password Incorrect."}) 
 		except:
-			return  jsonify({"error" : "Invalid Username.",
-							 "status" : status.HTTP_401_UNAUTHORIZED})
-
+			return  jsonify({"error" : "Invalid Username."})
 
 if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")

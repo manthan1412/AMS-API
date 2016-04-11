@@ -14,6 +14,7 @@ app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ams@localhost:5432/ams'
 # db = SQLAlchemy(app)
 api = Api(app)
+# api = Api(app, catch_all_404s=True)
 
 engine = create_engine('postgresql://postgres:ams@localhost:5432/ams')
 # engine = create_engine('postgres://qogoqipkzqtylc:VZNm-dB2SiYTlc7uezU7NbW_fJ@ec2-54-163-254-231.compute-1.amazonaws.com:5432/d164pdjkve1t6d')
