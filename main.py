@@ -72,8 +72,8 @@ class AddMaster(Resource):
 		data = request.get_json()
 		if session.query(Master).filter_by(username=data["username"]).first() is not None:
 			return jsonify({"message" : "Username already exists"})
-		master = Master(name=data["name"], username=data["username"], lastname=data["lastname"], password=data["password"], email=data["email"])
 		try:
+			master = Master(name=data["name"], username=data["username"], lastname=data["lastname"], password=data["password"], email=data["email"])
 			session.add(master)
 			session.commit()
 			return status.HTTP_200_OK
@@ -88,8 +88,8 @@ class AddStudent(Resource):
 		data = request.get_json()
 		if session.query(Student).filter_by(username=data["username"]).first() is not None:
 			return jsonify({"message" : "Username already exists"})
-		stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 		try:
+			stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 			session.add(stud)
 			session.commit()
 			return status.HTTP_200_OK
@@ -104,8 +104,8 @@ class AddTeacher(Resource):
 		data = request.get_json()
 		if session.query(Teacher).filter_by(username=data["username"]).first() is not None:
 			return jsonify({"message" : "Username already exists"})
-		teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
 		try:
+			teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
 			session.add(teacher)
 			session.commit()
 			return status.HTTP_200_OK
@@ -262,8 +262,8 @@ class Upload(Resource):
 		data = request.get_json()
 		if session.query(Teacher).filter_by(id=data["teacher_id"]).first() is None:
 			return status.HTTP_401_UNAUTHORIZED
-		file = Moodle(filename=data["filename"], path=data["path"], uploaded_by=data["teacher_id"])
 		try:
+			file = Moodle(filename=data["filename"], ftype=data["ftype"], path=data["path"], uploaded_by=data["teacher_id"])
 			session.add(file)
 			session.commit()
 			return status.HTTP_200_OK
@@ -275,7 +275,30 @@ class Upload(Resource):
 class DeleteFile(Resource):
 
 	def post(self):
-		pass
+		data = request.get_json()
+		try:
+			file = session.query(Moodle).filter_by(id=data["id"]).first()
+			if file.uploaded_by != data["teacher_id"]:
+				return jsonify({"message" : "You are not allowed to delete this file"})
+			session.delete(file)
+			session.commit()
+			return status.HTTP_200_OK
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@api.resource("/get/file")
+class GetFile(Resource):
+
+	def post(self):
+		data = request.get_json()
+		try:
+			path = data["path"]
+			files = session.query(Moodle).filter_by(path=path).all()
+			return jsonify(data=[file.serialize for file in files ])
+		except:
+			session.rollback()
+			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 @api.resource("/login")
 class Login(Resource):
