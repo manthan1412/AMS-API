@@ -33,34 +33,37 @@ class Check(Resource):
 
 		return jsonify({"name" : data["name"]})
 
-@api.resource("/teachers")
+@api.resource("/teachers/<int:pageid>/<int:pagesize>")
 class Teachers(Resource):
 
-	def post(self):
+	def post(self,pageid, pagesize):
 		data = request.get_json()
 		try:
-			teachers = session.query(Teacher).filter_by(master_id=data["id"]).all()
+			teachers = session.query(Teacher).filter_by(master_id=data["master_id"]).limit(pagesize)
+			students = students.offset(pagesize*pageid)
 			return jsonify(teacher=[teacher.serialize for teacher in teachers])
 		except:
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
-@api.resource("/students")
+@api.resource("/students/<int:pageid>/<int:pagesize>")
 class Students(Resource):
 
-	def post(self):
+	def post(self,pageid, pagesize):
 		data = request.get_json()
 		try:
-			students = session.query(Student).filter_by(master_id=data["id"]).all()
+			students = session.query(Student).filter_by(master_id=data["master_id"]).limit(pagesize)
+			students = students.offset(pagesize*pageid)
 			return jsonify(student=[student.serialize for student in students])
 		except:
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
 
-@api.resource("/masters")
+@api.resource("/masters/<int:pageid>/<int:pagesize>")
 class Masters(Resource):
 
-	def post(self):
+	def post(self,pageid, pagesize):
 		try:
-			masters = session.query(Master).all()
+			masters = session.query(Master).limit(pagesize)
+			students = students.offset(pagesize*pageid)
 			return jsonify(master=[master.serialize for master in masters])
 		except:
 			return status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -299,14 +302,12 @@ class DeleteMaster(Resource):
 @api.resource("/delete/student")
 class DeleteStudent(Resource):
 
-	def post(self):
+	def delete(self):
 		data = request.get_json()
 		try:
-			stud = session.query(Student).filter_by(id=data["id"]).one()
-		except:
-			return jsonify({"message" : "Student doesn't exist !"})
-
-		try:
+			stud = session.query(Student).get(data["id"])
+			if stud is None:
+				return jsonify({"message" : "Student doesn't exist !"})
 			session.delete(stud)
 			session.commit()
 			return status.HTTP_200_OK
@@ -377,6 +378,14 @@ class DeleteClass(Resource):
 @api.resource("/delete/timetable")
 class DeleteTimetable(Resource):
 
+	pass
+
+@api.resource("/give/attendance")
+class GiveAttendance(Resource):
+	pass
+
+@api.resource("/take/attendance")
+class TakeAttendance(Resource):
 	pass
 
 @api.resource("/get/file")

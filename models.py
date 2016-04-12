@@ -154,6 +154,7 @@ class Attendance(Base):
 	id=Column(Integer, primary_key=True)
 	start_time = Column(String, default=time.time())
 	a_string = Column(String, default=string)
+	key = Column(String, nullable=False)
 	class_id = Column(Integer, ForeignKey('class.id'))
 	classr = relationship(Class) 
 	
