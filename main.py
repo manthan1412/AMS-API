@@ -1,6 +1,6 @@
 from settings import *
 from models import *
-
+# use .get()
 @app.after_request
 def after_request(response):
 	response.headers.add('Access-Control-Allow-Origin', '*')
@@ -403,7 +403,7 @@ class StudentLogin(Resource):
 			return jsonify({"message" : "Invalid username"})
 		
 		if student.password == data["password"]:
-			return status.HTTP_200_OK
+			return jsonify({"message" : "Successfully logged in"})
 		else:
 			return jsonify({"message" : "Wrong password"})
 
@@ -418,7 +418,7 @@ class TeacherLogin(Resource):
 			return jsonify({"message" : "Invalid username"})
 		
 		if teacher.password == data["password"]:
-			return status.HTTP_200_OK
+			return jsonify({"message" : "Successfully logged in"})
 		else:
 			return jsonify({"message" : "Wrong password"})
 
@@ -430,11 +430,11 @@ class MasterLogin(Resource):
 		master = session.query(Master).filter_by(username=data["username"])
 		try:	
 			if master.one().password == data["password"]:
-				return status.HTTP_200_OK
+				return jsonify({"message" : "Successfully logged in"})
 			else:
-				return jsonify({"error" : "Password Incorrect."}) 
+				return jsonify({"message" : "Password Incorrect."}) 
 		except:
-			return  jsonify({"error" : "Invalid Username."})
+			return  jsonify({"message" : "Invalid Username."})
 
 if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")
