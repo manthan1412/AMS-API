@@ -1,6 +1,12 @@
 from settings import *
 from models import *
 # use .get()
+mid = 1
+# @api.representation('application/json')
+# def output_json(data, code, headers=None):
+# 	resp = make_response(json.dumps(data), code)
+# 	return resp 
+
 @app.after_request
 def after_request(response):
 	response.headers.add('Access-Control-Allow-Origin', '*')
@@ -28,45 +34,41 @@ class Check(Resource):
 		# resp = make_response("Hello world", 200)
 		# resp.headers.extend({'Access-Control-Allow-Origin' : 'http://127.0.0.1'})
 		data = request.get_json()
-		# print data
-		# return data["name"]
 
-		return jsonify({"name" : data["name"]})
+		return {"name" : data["name"]} , 201
 
 @api.resource("/teachers/<int:pageid>/<int:pagesize>")
 class Teachers(Resource):
 
-	def post(self,pageid, pagesize):
-		data = request.get_json()
+	def get(self,pageid, pagesize):
 		try:
-			teachers = session.query(Teacher).filter_by(master_id=data["master_id"]).limit(pagesize)
+			teachers = session.query(Teacher).filter_by(master_id=mid).limit(pagesize)
 			students = students.offset(pagesize*pageid)
 			return jsonify(teacher=[teacher.serialize for teacher in teachers])
 		except:
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "You are not allowed"} , 401
 
 @api.resource("/students/<int:pageid>/<int:pagesize>")
 class Students(Resource):
 
-	def post(self,pageid, pagesize):
-		data = request.get_json()
+	def get(self,pageid, pagesize):
 		try:
-			students = session.query(Student).filter_by(master_id=data["master_id"]).limit(pagesize)
+			students = session.query(Student).filter_by(master_id=mid).limit(pagesize)
 			students = students.offset(pagesize*pageid)
 			return jsonify(student=[student.serialize for student in students])
 		except:
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "You are not allowed"} , 401
 
 @api.resource("/masters/<int:pageid>/<int:pagesize>")
 class Masters(Resource):
 
-	def post(self,pageid, pagesize):
+	def get(self,pageid, pagesize):
 		try:
 			masters = session.query(Master).limit(pagesize)
 			students = students.offset(pagesize*pageid)
 			return jsonify(master=[master.serialize for master in masters])
 		except:
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "You are not allowed"} , 401
 
 @api.resource("/classes")
 class Classes(Resource):
@@ -89,15 +91,15 @@ class AddMaster(Resource):
 	def post(self):
 		data = request.get_json()
 		if session.query(Master).filter_by(username=data["username"]).first() is not None:
-			return jsonify({"message" : "Username already exists"})
+			return {"message" : "Username already exists"}, 409
 		try:
 			master = Master(name=data["name"], username=data["username"], lastname=data["lastname"], password=data["password"], email=data["email"])
 			session.add(master)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"}, 401
 
 @api.resource("/add/student")
 class AddStudent(Resource):
@@ -105,15 +107,15 @@ class AddStudent(Resource):
 	def post(self):
 		data = request.get_json()
 		if session.query(Student).filter_by(username=data["username"]).first() is not None:
-			return jsonify({"message" : "Username already exists"})
+			return {"message" : "Username already exists"} , 409
 		try:
 			stud = Student(name=data["name"], lastname = data["lastname"], username=data["username"], password=data["password"], image=data["image"], master_id=data["master_id"])
 			session.add(stud)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"}, 401
 
 @api.resource("/add/teacher")
 class AddTeacher(Resource):
@@ -121,15 +123,15 @@ class AddTeacher(Resource):
 	def post(self):
 		data = request.get_json()
 		if session.query(Teacher).filter_by(username=data["username"]).first() is not None:
-			return jsonify({"message" : "Username already exists"})
+			return {"message" : "Username already exists"} , 409
 		try:
 			teacher = Teacher(name=data["name"], lastname=data["lastname"], username=data["username"], password=data["password"], email=data["email"], master_id=data["master_id"])
 			session.add(teacher)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"}, 401
 
 @api.resource("/add/class")
 class AddClass(Resource):
@@ -140,10 +142,10 @@ class AddClass(Resource):
 			classd = Class(department=data["department"], year=data["year"], div=data["div"], master_id=data["master_id"])
 			session.add(classd)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"}, 401
 
 @api.resource("/add/subject")
 class AddSubject(Resource):
@@ -154,10 +156,10 @@ class AddSubject(Resource):
 			subject = Subject(name=data["name"], master_id=data["master_id"])
 			session.add(subject)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"}, 401
 
 @api.resource("/add/timetable")
 class AddTimetable(Resource):
@@ -168,27 +170,26 @@ class AddTimetable(Resource):
 			class_id = session.query(Class).filter(and_(Class.department==data["department"], Class.year==data["year"], Class.div==data["div"], Class.master_id==data["master_id"])).one()
 		except:
 			session.rollback()
-			return jsonify({"message" : "Invalid data"})
+			return {"message" : "Invalid data"}, 403
 		try:
 			timetable = Timetable(day=data["day"], start_time=data["start"], end_time=data["end"], class_id=class_id, teacher_id=data["teacher_id"], subject_id=data["subject_id"], master_id=data["master_id"])
 			session.add(timetable)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully added"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_401_UNAUTHORIZED
+			return {"message" : "Error"}, 401
 
 @api.resource("/edit/master")
 class EditMaster(Resource):
 
-	def post(self):
+	def put(self):
 		data = request.get_json()
 		try:
-			master = session.query(Master).filter_by(id=data["id"]).one()
-		except:
-			return jsonify({"message" : "Master doesn't exist !"})
-
-		try:	
+			master = session.query(Master).get(data["id"])
+			if master is None:
+				return {"message" : "You are not allowed"} , 403
+	
 			if data["name"] is not None:
 				master.name = data["name"]
 			if data["lastname"] is not None:
@@ -198,27 +199,26 @@ class EditMaster(Resource):
 					master.password = data["newpassword"]
 				else:
 					session.rollback()
-					return jsonify({"message" : "Wrong password"})
+					return {"message" : "Wrong password"} , 403
 			if data["email"] is not None:
 				master.email = data["email"]
 			session.add(master)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully edited"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"} , 401
 
 @api.resource("/edit/student")
 class EditStudent(Resource):
 
-	def post(self):
+	def put(self):
 		data = request.get_json()
 		try:
-			stud = session.query(Student).filter_by(id=data["id"]).one()
-		except:
-			return jsonify({"message" : "Student doesn't exist !"})
+			stud = session.query(Student).get(data["id"])
+			if stud is None:
+				return {"message" : "You are not allowed"} , 403
 
-		try:	
 			if data["name"] is not None:
 				stud.name = data["name"]
 			if data["lastname"] is not None:
@@ -228,25 +228,24 @@ class EditStudent(Resource):
 					stud.password = data["newpassword"]
 				else:
 					session.rollback()
-					return jsonify({"message" : "Wrong password"})
+					return {"message" : "Wrong password"} , 403
 			session.add(stud)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully edited"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"} , 401
 
 @api.resource("/edit/teacher")
 class EditTeacher(Resource):
 
-	def post(self):
+	def put(self):
 		data = request.get_json()
 		try:
-			teacher = session.query(Teacher).filter_by(id=data["id"]).one()
-		except:
-			return jsonify({"message" : "Teacher doesn't exist !"})
+			teacher = session.query(Teacher).get(data["id"])
+			if teacher is None:
+				return {"message" : "You are not allowed"}, 403
 
-		try:	
 			if data["name"] is not None:
 				teacher.name = data["name"]
 			if data["lastname"] is not None:
@@ -256,15 +255,15 @@ class EditTeacher(Resource):
 					teacher.password = data["newpassword"]
 				else:
 					session.rollback()
-					return jsonify({"message" : "Wrong password"})
+					return {"message" : "Wrong password"} , 403
 			if data["email"] is not None:
 				teacher.email = data["email"]
 			session.add(teacher)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully edited"} , 200
 		except:
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"} , 401
 
 @api.resource("/edit/subject")
 class EditSubject(Resource):
@@ -284,7 +283,7 @@ class EditTimetable(Resource):
 @api.resource("/delete/master")
 class DeleteMaster(Resource):
 
-	def post(self):
+	def delete(self):
 		data = request.get_json()
 		try:
 			master = session.query(Master).filter_by(id=data["id"]).one()
@@ -307,63 +306,30 @@ class DeleteStudent(Resource):
 		try:
 			stud = session.query(Student).get(data["id"])
 			if stud is None:
-				return jsonify({"message" : "Student doesn't exist !"})
+				return {"message" : "Student doesn't exist !"} , 404
 			session.delete(stud)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully deleted"} , 200
 		except: 
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"} , 404
 
 @api.resource("/delete/teacher")
 class DeleteTeacher(Resource):
 
-	def post(self):
+	def delete(self):
 		data = request.get_json()
 		try:
-			teacher = session.query(Teacher).filter_by(id=data["id"]).one()
-		except:
-			return jsonify({"message" : "Teacher doesn't exist !"})
+			teacher = session.query(Teacher).get(data["id"])
+			if teacher is None:
+				return {"message" : "Teacher doesn't exist !"} , 404
 
-		try:
 			session.delete(teacher)
 			session.commit()
-			return status.HTTP_200_OK
+			return {"message" : "Successfully deleted"} , 200
 		except: 
 			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
-
-@api.resource("/upload/file")
-class Upload(Resource):
-	
-	def post(self):
-		data = request.get_json()
-		if session.query(Teacher).filter_by(id=data["teacher_id"]).first() is None:
-			return status.HTTP_401_UNAUTHORIZED
-		try:
-			file = Moodle(filename=data["filename"], ftype=data["ftype"], path=data["path"], uploaded_by=data["teacher_id"])
-			session.add(file)
-			session.commit()
-			return status.HTTP_200_OK
-		except:
-			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
-
-@api.resource("/delete/file")
-class DeleteFile(Resource):
-
-	def post(self):
-		data = request.get_json()
-		try:
-			file = session.query(Moodle).filter_by(id=data["id"]).first()
-			if file.uploaded_by != data["teacher_id"]:
-				return jsonify({"message" : "You are not allowed to delete this file"})
-			session.delete(file)
-			session.commit()
-			return status.HTTP_200_OK
-		except:
-			session.rollback()
-			return status.HTTP_500_INTERNAL_SERVER_ERROR
+			return {"message" : "Error"} , 404
 
 @api.resource("/delete/subject")
 class DeleteSubject(Resource):
@@ -380,6 +346,40 @@ class DeleteTimetable(Resource):
 
 	pass
 
+@api.resource("/upload/file")
+class Upload(Resource):
+	
+	def post(self):
+		data = request.get_json()
+		if session.query(Teacher).get(data["teacher_id"]) is None:
+			return {"message" : "You are not allowed"} , 401
+		try:
+			file = Moodle(filename=data["filename"], ftype=data["ftype"], path=data["path"], uploaded_by=data["teacher_id"])
+			session.add(file)
+			session.commit()
+			return {"message" : "Successfully uploaded"} , 200
+		except:
+			session.rollback()
+			return {"message" : "Error"} , 401
+
+@api.resource("/delete/file")
+class DeleteFile(Resource):
+
+	def delete(self):
+		data = request.get_json()
+		try:
+			file = session.query(Moodle).get(data["id"])
+			if file is None:
+				return {"message" : "File not found"}, 404
+			if file.uploaded_by != data["teacher_id"]:
+				return {"message" : "You are not allowed"} , 401
+			session.delete(file)
+			session.commit()
+			return {"message" : "Deleted successfully"}, 200
+		except:
+			session.rollback()
+			return {"message" : "Error"} , 401
+
 @api.resource("/give/attendance")
 class GiveAttendance(Resource):
 	pass
@@ -391,7 +391,7 @@ class TakeAttendance(Resource):
 @api.resource("/get/file")
 class GetFile(Resource):
 
-	def post(self):
+	def get(self):
 		data = request.get_json()
 		try:
 			path = data["path"]
@@ -404,32 +404,32 @@ class GetFile(Resource):
 @api.resource("/login/student")
 class StudentLogin(Resource):
 
-	def post(self):
+	def get(self):
 		data = request.authorization
 		try:
 			student = session.query(Student).filter_by(username=data["username"]).one()
 		except:
-			return jsonify({"message" : "Invalid username"})
+			return {"message" : "Invalid username"} , 404
 		
 		if student.password == data["password"]:
-			return jsonify({"message" : "Successfully logged in"})
+			return {"message" : "Successfully logged in"} , 200
 		else:
-			return jsonify({"message" : "Wrong password"})
+			return {"message" : "Wrong password"}, 404
 
 @api.resource("/login/teacher")
 class TeacherLogin(Resource):
 
-	def post(self):
+	def get(self):
 		data = request.authorization
 		try:
 			teacher = session.query(Teacher).filter_by(username=data["username"]).one()
 		except:
-			return jsonify({"message" : "Invalid username"})
+			return {"message" : "Invalid username"} , 404
 		
 		if teacher.password == data["password"]:
-			return jsonify({"message" : "Successfully logged in"})
+			return {"message" : "Successfully logged in"} , 200
 		else:
-			return jsonify({"message" : "Wrong password"})
+			return {"message" : "Wrong password"}, 404
 
 @api.resource("/login/master")
 class MasterLogin(Resource):
@@ -439,11 +439,10 @@ class MasterLogin(Resource):
 		master = session.query(Master).filter_by(username=data["username"])
 		try:	
 			if master.one().password == data["password"]:
-				return jsonify({"message" : "Successfully logged in"})
-			else:
-				return jsonify({"message" : "Password Incorrect."}) 
+				return {"message" : "Successfully logged in"} , 200
+				return {"message" : "Wrong password"}, 404
 		except:
-			return  jsonify({"message" : "Invalid Username."})
+			return  {"message" : "Invalid username"} , 404
 
 if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")
