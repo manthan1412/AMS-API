@@ -1,22 +1,6 @@
 from settings import *
 
 
-# class Test(Base):
-# 	def __init__(self, username, password):
-# 		self.username = username
-# 		self.password = password
-# tname  = ["diva", "divb"11]
-
-# for t in tname:
-# 	timetable = Table(
-# 					t,metadata,
-# 					Column('id',Integer,primary_key=True),
-# 					Column('name',String)
-# 				)
-# 	metadata.create_all()
-# mapper(TimeTable, timetable)
-	# s = create_sess
-
 class Master(Base):
 
 	__tablename__ = 'master'

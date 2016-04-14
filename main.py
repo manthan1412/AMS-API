@@ -409,12 +409,14 @@ class StudentLogin(Resource):
 		try:
 			student = session.query(Student).filter_by(username=data["username"]).one()
 		except:
-			return {"message" : "Invalid username"} , 404
-		
-		if student.password == data["password"]:
-			return {"message" : "Successfully logged in"} , 200
-		else:
-			return {"message" : "Wrong password"}, 404
+			return {"message" : "Invalid username", "status" : 404} 
+		try:
+			if student.password == data["password"]:
+				return {"message" : "Successfully logged in", "status" : 200, "id": student.id}
+			else:
+				return {"message" : "Wrong password", "status" : 404}
+		except:
+			return {"message" : "Error", "status" : 404}, 404
 
 @api.resource("/login/teacher")
 class TeacherLogin(Resource):
@@ -424,25 +426,31 @@ class TeacherLogin(Resource):
 		try:
 			teacher = session.query(Teacher).filter_by(username=data["username"]).one()
 		except:
-			return {"message" : "Invalid username"} , 404
-		
-		if teacher.password == data["password"]:
-			return {"message" : "Successfully logged in"} , 200
-		else:
-			return {"message" : "Wrong password"}, 404
+			return {"message" : "Invalid username", "status" : 404}
+		try:
+			if teacher.password == data["password"]:
+				return {"message" : "Successfully logged in", "status" : 200, "id": teacher.id}
+			else:
+				return {"message" : "Wrong password", "status" : 404}
+		except:
+			return {"message" : "Error", "status" : 404}, 404
 
 @api.resource("/login/master")
 class MasterLogin(Resource):
 
-	def post(self):
+	def get(self):
 		data = request.authorization
-		master = session.query(Master).filter_by(username=data["username"])
 		try:	
-			if master.one().password == data["password"]:
-				return {"message" : "Successfully logged in"} , 200
-				return {"message" : "Wrong password"}, 404
+			master = session.query(Master).filter_by(username=data["username"]).one()
 		except:
-			return  {"message" : "Invalid username"} , 404
+			return {"message" : "Invalid username", "status" : 404}
+		try:
+			if master.password == data["password"]:
+				return {"message" : "Successfully logged in", "status" : 200, "id" : master.id}
+			else:
+				return {"message" : "Wrong password", "status" : 404}
+		except:
+			return {"message" : "Error", "status" : 404}, 404
 
 if __name__ == '__main__':
 	# stud = Student(username="shadiest", password="xyz")
